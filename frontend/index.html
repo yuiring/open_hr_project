@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI + MCP 智能人力资源助手</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 AI + MCP 智能人力资源助手</h1>
+            <p>通过自然语言对话管理员工信息</p>
+        </header>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" onclick="showTab('ai-chat')">AI对话</button>
+            <button class="tab-btn" onclick="showTab('employee-list')">员工列表</button>
+            <button class="tab-btn" onclick="showTab('add-employee')">新增员工</button>
+            <button class="tab-btn" onclick="showTab('statistics')">统计信息</button>
+        </nav>
+
+        <!-- AI对话界面 -->
+        <div id="ai-chat" class="tab-content active">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h2>💬 AI助手对话</h2>
+                    <p>您可以用自然语言查询、新增或修改员工信息</p>
+                </div>
+                
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message assistant">
+                        <div class="message-content">
+                            <strong>AI助手：</strong>您好！我是智能HR助手。您可以：<br>
+                            • 查询员工：「查询张三的人事账号」<br>
+                            • 新增员工：「新增一个员工王小敏，部门是市场部」<br>
+                            • 修改信息：「把李四的部门改为行政部」<br>
+                            请告诉我您需要什么帮助？
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-input-container">
+                    <div class="input-group">
+                        <input type="text" id="chatInput" placeholder="请输入您的问题..." onkeypress="handleChatKeyPress(event)">
+                        <button onclick="sendMessage()" class="send-btn">发送</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 员工列表界面 -->
+        <div id="employee-list" class="tab-content">
+            <div class="list-header">
+                <h2>👥 员工列表</h2>
+                <div class="search-filters">
+                    <input type="text" id="searchName" placeholder="搜索员工姓名..." onkeyup="searchEmployees()">
+                    <select id="filterDepartment" onchange="searchEmployees()">
+                        <option value="">所有部门</option>
+                    </select>
+                    <select id="filterStatus" onchange="searchEmployees()">
+                        <option value="">所有状态</option>
+                        <option value="在职">在职</option>
+                        <option value="离职">离职</option>
+                    </select>
+                    <button onclick="loadEmployees()" class="refresh-btn">刷新</button>
+                </div>
+            </div>
+            
+            <div class="employee-table-container">
+                <table class="employee-table">
+                    <thead>
+                        <tr>
+                            <th>姓名</th>
+                            <th>工号</th>
+                            <th>部门</th>
+                            <th>HR账号</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeeTableBody">
+                        <!-- 员工数据将通过JavaScript动态加载 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 新增员工界面 -->
+        <div id="add-employee" class="tab-content">
+            <div class="form-container">
+                <h2>➕ 新增员工</h2>
+                <form id="addEmployeeForm" onsubmit="addEmployee(event)">
+                    <div class="form-group">
+                        <label for="employeeName">员工姓名 *</label>
+                        <input type="text" id="employeeName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="employeeDepartment">所属部门 *</label>
+                        <select id="employeeDepartment" required>
+                            <option value="">请选择部门</option>
+                            <option value="技术部">技术部</option>
+                            <option value="市场部">市场部</option>
+                            <option value="人事部">人事部</option>
+                            <option value="财务部">财务部</option>
+                            <option value="行政部">行政部</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="employeeId">员工工号</label>
+                        <input type="text" id="employeeId" placeholder="留空自动生成">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hrAccount">HR账号</label>
+                        <input type="email" id="hrAccount" placeholder="留空自动生成">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn">创建员工</button>
+                        <button type="reset" class="reset-btn">重置表单</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 统计信息界面 -->
+        <div id="statistics" class="tab-content">
+            <div class="stats-container">
+                <h2>📊 统计信息</h2>
+                
+                <div class="stats-cards">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalEmployees">-</div>
+                        <div class="stat-label">总员工数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="activeEmployees">-</div>
+                        <div class="stat-label">在职员工</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="inactiveEmployees">-</div>
+                        <div class="stat-label">离职员工</div>
+                    </div>
+                </div>
+                
+                <div class="department-stats">
+                    <h3>各部门人数分布</h3>
+                    <div id="departmentChart" class="chart-container">
+                        <!-- 部门统计图表将通过JavaScript生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑员工模态框 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>编辑员工信息</h3>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <form id="editEmployeeForm" onsubmit="updateEmployee(event)">
+                <input type="hidden" id="editEmployeeId">
+                
+                <div class="form-group">
+                    <label for="editName">员工姓名</label>
+                    <input type="text" id="editName" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editDepartment">所属部门</label>
+                    <select id="editDepartment" required>
+                        <option value="技术部">技术部</option>
+                        <option value="市场部">市场部</option>
+                        <option value="人事部">人事部</option>
+                        <option value="财务部">财务部</option>
+                        <option value="行政部">行政部</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editHrAccount">HR账号</label>
+                    <input type="email" id="editHrAccount">
+                </div>
+                
+                <div class="form-group">
+                    <label for="editStatus">员工状态</label>
+                    <select id="editStatus">
+                        <option value="在职">在职</option>
+                        <option value="离职">离职</option>
+                    </select>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="submit" class="submit-btn">保存更改</button>
+                    <button type="button" onclick="closeEditModal()" class="cancel-btn">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 加载提示 -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">处理中...</div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
